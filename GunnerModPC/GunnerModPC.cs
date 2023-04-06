@@ -4,10 +4,9 @@ using HarmonyLib;
 using System.Reflection;
 using GHPC.Player;
 using GHPC;
-using System.Threading;
 using GHPC.UI;
 
-[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "0.0.1", "Andrix")]
+[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.0.0", "Andrix")]
 [assembly: MelonGame("Radian Simulations LLC", "GHPC")]
 
 namespace GunnerModPC
