@@ -1,11 +1,11 @@
 # GunnerModPC
 
 ## Features
+- Adds back the live hitlog.
 - Adds back the FPS counter in the bottom left corner.
-- Removes April's fools 2023 effects from the damage log cheat and makes it the same style as the AAR hitlog.
 - Patches the map selector dropdown so you don't have to scroll for the bottom few maps.
 
-Tested on version 20230401.1
+Tested on version 20230401.2
 
 ## Installation
 - Install MelonLoader: https://github.com/LavaGang/MelonLoader.Installer/blob/master/README.md#how-to-install-re-install-or-update-melonloader.

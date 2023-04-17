@@ -6,7 +6,7 @@ using GHPC.Player;
 using GHPC;
 using GHPC.UI;
 
-[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.0.0", "Andrix")]
+[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.1.0", "Andrix")]
 [assembly: MelonGame("Radian Simulations LLC", "GHPC")]
 
 namespace GunnerModPC
@@ -31,7 +31,7 @@ namespace GunnerModPC
 
             if (shotStoryPatchEnabled.Value)
             {
-                harmony.PatchAll(typeof(ReceivedShotStoryPatch));
+                harmony.PatchAll(typeof(ReportShotStoryPatch));
                 LoggerInstance.Msg("Shot story patch activated!");
             }
         }
@@ -72,18 +72,41 @@ namespace GunnerModPC
         }
     }
 
-    [HarmonyPatch(typeof(PlayerInput), "ReceivedShotStory")]
-    public class ReceivedShotStoryPatch
+    class ReportShotStoryPatch
     {
-        public static bool Prefix(ref PlayerInput __instance, Unit sender, GHPC.Weapons.LiveRound.ShotStory story,
-                                   ref float ____shotStoryLifeRemaining, ref AarController ____aarController, ref bool ____allowShotStory)
+        static PlayerInput playerInput;
+        static FieldInfo _shotStoryLifeRemaining;
+        static FieldInfo _aarController;
+
+        static ReportShotStoryPatch()
         {
-            if (____allowShotStory && sender == __instance.CurrentPlayerUnit)
+            playerInput = UnityEngine.Object.FindObjectOfType<PlayerInput>();
+            _shotStoryLifeRemaining = typeof(PlayerInput).GetField("_shotStoryLifeRemaining", BindingFlags.Instance | BindingFlags.NonPublic);
+            _aarController = typeof(PlayerInput).GetField("_aarController", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyPatch(typeof(GHPC.Weapons.LiveRound), "ReportShotStory")]
+        [HarmonyPrefix]
+        static bool ReportShotStoryPrefix(GHPC.Weapons.LiveRound __instance)
+        {
+            if (__instance.Story != null && __instance.Shooter == playerInput.CurrentPlayerUnit &&
+                __instance.IsSpall == false && __instance.ParentRound == null &&
+                __instance.Story.ShotNumber > 0)
             {
-                ____shotStoryLifeRemaining = 5f;
-                ____aarController.ShotStoryTextBox.text = story.FinalString;
+                _shotStoryLifeRemaining.SetValue(playerInput, 5);
+                AarController aac = (AarController)_aarController.GetValue(playerInput);
+                aac.ShotStoryTextBox.text = __instance.Story.FinalString;
             }
+
             return false;
+        }
+
+        [HarmonyPatch(typeof(AarController), "Awake")]
+        [HarmonyPostfix]
+        static void AarControllerAwakePostfix(AarController __instance)
+        {
+            __instance.ShotStoryTextBox?.gameObject.SetActive(true);
+
         }
     }
 }
