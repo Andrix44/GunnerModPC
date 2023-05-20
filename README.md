@@ -5,7 +5,7 @@
 - Adds back the FPS counter in the bottom left corner.
 - Patches the map selector dropdown so you don't have to scroll for the bottom few maps.
 
-Tested on version 20230401.2
+Tested on version 20230519
 
 ## Installation
 - Install MelonLoader: https://github.com/LavaGang/MelonLoader.Installer/blob/master/README.md#how-to-install-re-install-or-update-melonloader.
