@@ -69,18 +69,23 @@ namespace GunnerModPC
                     LoggerInstance.Msg("MissionMenuSetup object not found, theatre dropdown menu patch could not be activated!");
                 }
             }
+
+            if (shotStoryPatchEnabled.Value)
+            {
+                ReportShotStoryPatch.playerInput = UnityEngine.Object.FindObjectOfType<PlayerInput>();
+            }
         }
     }
 
     class ReportShotStoryPatch
     {
-        static PlayerInput playerInput;
+        static public PlayerInput playerInput;
         static FieldInfo _shotStoryLifeRemaining;
         static FieldInfo _aarController;
 
         static ReportShotStoryPatch()
         {
-            playerInput = UnityEngine.Object.FindObjectOfType<PlayerInput>();
+            // playerInput is reloaded on every scene load
             _shotStoryLifeRemaining = typeof(PlayerInput).GetField("_shotStoryLifeRemaining", BindingFlags.Instance | BindingFlags.NonPublic);
             _aarController = typeof(PlayerInput).GetField("_aarController", BindingFlags.Instance | BindingFlags.NonPublic);
         }
@@ -89,7 +94,7 @@ namespace GunnerModPC
         [HarmonyPrefix]
         static bool ReportShotStoryPrefix(GHPC.Weapons.LiveRound __instance)
         {
-            if (__instance.Story != null && __instance.Shooter == playerInput.CurrentPlayerUnit &&
+            if (__instance.Story != null && __instance.ShotInfo.IsPlayerShot &&
                 __instance.IsSpall == false && __instance.ParentRound == null &&
                 __instance.Story.ShotNumber > 0)
             {
