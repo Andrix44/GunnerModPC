@@ -14,3 +14,6 @@ Tested on version 20230519
 
 ![Screenshot 2023-04-06 222759](https://user-images.githubusercontent.com/13806656/230488996-d7b76c4d-7480-4e35-ac7e-519de13f9005.png)
 ![Screenshot 2023-04-06 210333](https://user-images.githubusercontent.com/13806656/230489058-cdb0f9f9-be1a-49d5-92e6-86b6138bbdf2.png)
+
+## Building
+You can simply build the project with Visual Studio, but first you have to fix the references so that they point to your game DLLs.
