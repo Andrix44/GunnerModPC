@@ -4,7 +4,7 @@
 - Adds the T-34-85 to the Grafenwoehr tank range.
 - Adds back the live hitlog.
 - Adds back the FPS counter in the bottom left corner.
-- Removes the 3rd person crosshair
+- Removes the 3rd person crosshair.
 - Patches the map selector dropdown so you don't have to scroll for the bottom few maps.
 
 All features can be toggled in `\Gunner, HEAT, PC!\Bin\UserData\MelonPreferences.cfg`. Make sure to run the mod at least once to generate the settings.
