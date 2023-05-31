@@ -5,6 +5,8 @@ using System.Reflection;
 using GHPC.Player;
 using GHPC;
 using GHPC.UI;
+using UnityEngine;
+using System.Linq;
 
 [assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.1.0", "Andrix")]
 [assembly: MelonGame("Radian Simulations LLC", "GHPC")]
@@ -17,7 +19,8 @@ namespace GunnerModPC
         public static MelonPreferences_Entry<bool> fpsPatchEnabled;
         public static MelonPreferences_Entry<bool> shotStoryPatchEnabled;
         public static MelonPreferences_Entry<bool> theaterDropdownPatchEnabled;
-        //private MelonPreferences_Entry<bool> thirdPersonCrosshairPatchEnabled;
+        public static MelonPreferences_Entry<bool> thirdPersonCrosshairPatchEnabled;
+        public static MelonPreferences_Entry<bool> t3485GrafenwoehrPatchEnabled;
 
         public override void OnInitializeMelon()
         {
@@ -25,7 +28,8 @@ namespace GunnerModPC
             fpsPatchEnabled = config.CreateEntry<bool>("fpsPatchEnabled", true);
             shotStoryPatchEnabled = config.CreateEntry<bool>("shotStoryPatchEnabled", true);
             theaterDropdownPatchEnabled = config.CreateEntry<bool>("theaterDropdownPatchEnabled", true);
-            //thirdPersonCrosshairPatchEnabled = config.CreateEntry<bool>("thirdPersonCrosshairPatchEnabled", true);
+            thirdPersonCrosshairPatchEnabled = config.CreateEntry<bool>("thirdPersonCrosshairPatchEnabled", true);
+            t3485GrafenwoehrPatchEnabled = config.CreateEntry<bool>("t3485GrafenwoehrPatchEnabled", true);
 
             HarmonyLib.Harmony harmony = this.HarmonyInstance;
 
@@ -42,7 +46,7 @@ namespace GunnerModPC
 
             if (fpsPatchEnabled.Value)
             {
-                HUDFPS fpsCounter = UnityEngine.Object.FindObjectOfType<HUDFPS>();
+                HUDFPS fpsCounter = Object.FindObjectOfType<HUDFPS>();
                 if (fpsCounter != null )
                 {
                     fpsCounter.SetActive(true);
@@ -50,18 +54,18 @@ namespace GunnerModPC
                 }
                 else
                 {
-                    LoggerInstance.Warning("HUDFPS object not found, FPS counter could not be activated!");
+                    LoggerInstance.Msg("HUDFPS object not found, FPS counter could not be activated!");
                 }
             }
 
             if (sceneName == "MainMenu2_Scene" && theaterDropdownPatchEnabled.Value)
             {
-                MissionMenuSetup missionMenuSetup = UnityEngine.Object.FindAnyObjectByType<MissionMenuSetup>();
+                MissionMenuSetup missionMenuSetup = Object.FindAnyObjectByType<MissionMenuSetup>();
                 if (missionMenuSetup != null)
                 {
                     FieldInfo _theaterDropdown = typeof(MissionMenuSetup).GetField("_theaterDropdown", BindingFlags.Instance | BindingFlags.NonPublic);
                     TMPro.TMP_Dropdown theaterDropdown = (TMPro.TMP_Dropdown)_theaterDropdown.GetValue(missionMenuSetup);
-                    theaterDropdown.template.SetSizeWithCurrentAnchors(UnityEngine.RectTransform.Axis.Vertical, 10000);
+                    theaterDropdown.template.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 10000);
                     LoggerInstance.Msg("Theatre dropdown menu patch activated!");
                 }
                 else
@@ -72,7 +76,45 @@ namespace GunnerModPC
 
             if (shotStoryPatchEnabled.Value)
             {
-                ReportShotStoryPatch.playerInput = UnityEngine.Object.FindObjectOfType<PlayerInput>();
+                ReportShotStoryPatch.playerInput = Object.FindObjectOfType<PlayerInput>();
+            }
+
+            if (thirdPersonCrosshairPatchEnabled.Value)
+            {
+                var aimReticle = GameObject.Find("3P aim reticle");
+                if (aimReticle != null)
+                {
+                    aimReticle.SetActive(false);
+                    LoggerInstance.Msg("3rd person crosshair removed!");
+                }
+                else
+                {
+                    LoggerInstance.Msg("3rd person crosshair object not found, 3rd person crosshair patch could not be activated!");
+                }
+            }
+
+            if (sceneName == "TR01_showcase" && t3485GrafenwoehrPatchEnabled.Value)
+            {
+                // Have to do this because of the HideAndDontSave flag
+                var t3485 = Resources.FindObjectsOfTypeAll(typeof(GameObject)).Where(o => o.name == "T-34-85").First() as GameObject;
+                if (t3485 != null)
+                {
+                    var vehicle = t3485.GetComponent<GHPC.Vehicle.Vehicle>();
+                    if (vehicle != null)
+                    {
+                        vehicle.Allegiance = Faction.Neutral;
+                        GameObject.Instantiate(t3485, new Vector3(1179f, 22f, 1614f), new Quaternion(0f, 0.8f, 0f, -0.8f));
+                        LoggerInstance.Msg("T-34-85 successfully spawned!");
+                    }
+                    else
+                    {
+                        LoggerInstance.Error("Could not find Vehicle component in T-34-85 GameObject!");
+                    }
+                }
+                else
+                {
+                    LoggerInstance.Error("T-34-85 object not found, T-34-85 Grafenwoehr patch could not be activated!");
+                }
             }
         }
     }
