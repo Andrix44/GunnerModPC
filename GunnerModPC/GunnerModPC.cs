@@ -8,7 +8,7 @@ using GHPC.UI;
 using UnityEngine;
 using System.Linq;
 
-[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.1.0", "Andrix")]
+[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.2.0", "Andrix")]
 [assembly: MelonGame("Radian Simulations LLC", "GHPC")]
 
 namespace GunnerModPC
