@@ -7,8 +7,11 @@ using GHPC;
 using GHPC.UI;
 using UnityEngine;
 using System.Linq;
+using System.Collections.Generic;
+using System;
+using GHPC.Vehicle;
 
-[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.2.0", "Andrix")]
+[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.3.0", "Andrix")]
 [assembly: MelonGame("Radian Simulations LLC", "GHPC")]
 
 namespace GunnerModPC
@@ -21,6 +24,7 @@ namespace GunnerModPC
         public static MelonPreferences_Entry<bool> theaterDropdownPatchEnabled;
         public static MelonPreferences_Entry<bool> thirdPersonCrosshairPatchEnabled;
         public static MelonPreferences_Entry<bool> t3485GrafenwoehrPatchEnabled;
+        public static MelonPreferences_Entry<bool> wipVehiclesGrafenwoehrPatchEnabled;
 
         public override void OnInitializeMelon()
         {
@@ -30,6 +34,7 @@ namespace GunnerModPC
             theaterDropdownPatchEnabled = config.CreateEntry<bool>("theaterDropdownPatchEnabled", true);
             thirdPersonCrosshairPatchEnabled = config.CreateEntry<bool>("thirdPersonCrosshairPatchEnabled", true);
             t3485GrafenwoehrPatchEnabled = config.CreateEntry<bool>("t3485GrafenwoehrPatchEnabled", true);
+            wipVehiclesGrafenwoehrPatchEnabled = config.CreateEntry<bool>("wipVehiclesGrafenwoehrPatchEnabled", true);
 
             HarmonyLib.Harmony harmony = this.HarmonyInstance;
 
@@ -46,7 +51,7 @@ namespace GunnerModPC
 
             if (fpsPatchEnabled.Value)
             {
-                HUDFPS fpsCounter = Object.FindObjectOfType<HUDFPS>();
+                HUDFPS fpsCounter = GameObject.FindObjectOfType<HUDFPS>();
                 if (fpsCounter != null )
                 {
                     fpsCounter.SetActive(true);
@@ -60,7 +65,7 @@ namespace GunnerModPC
 
             if (sceneName == "MainMenu2_Scene" && theaterDropdownPatchEnabled.Value)
             {
-                MissionMenuSetup missionMenuSetup = Object.FindAnyObjectByType<MissionMenuSetup>();
+                MissionMenuSetup missionMenuSetup = GameObject.FindAnyObjectByType<MissionMenuSetup>();
                 if (missionMenuSetup != null)
                 {
                     FieldInfo _theaterDropdown = typeof(MissionMenuSetup).GetField("_theaterDropdown", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -76,7 +81,7 @@ namespace GunnerModPC
 
             if (shotStoryPatchEnabled.Value)
             {
-                ReportShotStoryPatch.playerInput = Object.FindObjectOfType<PlayerInput>();
+                ReportShotStoryPatch.playerInput = GameObject.FindObjectOfType<PlayerInput>();
             }
 
             if (thirdPersonCrosshairPatchEnabled.Value)
@@ -99,22 +104,49 @@ namespace GunnerModPC
                 var t3485 = Resources.FindObjectsOfTypeAll(typeof(GameObject)).Where(o => o.name == "T-34-85").First() as GameObject;
                 if (t3485 != null)
                 {
-                    var vehicle = t3485.GetComponent<GHPC.Vehicle.Vehicle>();
-                    if (vehicle != null)
-                    {
-                        vehicle.Allegiance = Faction.Neutral;
-                        GameObject.Instantiate(t3485, new Vector3(1179f, 22f, 1614f), new Quaternion(0f, 0.8f, 0f, -0.8f));
-                        LoggerInstance.Msg("T-34-85 successfully spawned!");
-                    }
-                    else
-                    {
-                        LoggerInstance.Error("Could not find Vehicle component in T-34-85 GameObject!");
-                    }
+                    SpawnNeutralVehicle(t3485, new Vector3(1179f, 22f, 1614f), new Quaternion(0f, 0.8f, 0f, -0.8f));
                 }
                 else
                 {
                     LoggerInstance.Error("T-34-85 object not found, T-34-85 Grafenwoehr patch could not be activated!");
                 }
+            }
+
+            if (sceneName == "TR01_showcase" && wipVehiclesGrafenwoehrPatchEnabled.Value)
+            {
+                var vehiclesDict = new Dictionary<string, Vector3> { { "T62(old)", new Vector3(1241.279f, 23.6485f, 1559.117f) },
+                                                                     {"T64A OLD", new Vector3(1241.392f, 23.4064f, 1572.717f) },
+                                                                     {"M901 ITV - OLD", new Vector3(1245.746f, 23.4879f, 1532.222f) },
+                                                                     {"LEO1", new Vector3(1244.113f, 23.5555f, 1545.431f)} };
+                // Have to do this because of the HideAndDontSave flag
+                var spawnedNum = 0;
+
+                var wipVehicles = Resources.FindObjectsOfTypeAll(typeof(GameObject)).Where(o =>vehiclesDict.ContainsKey(o.name));
+                foreach(var wipVehicle in wipVehicles)
+                {
+                    SpawnNeutralVehicle(wipVehicle as GameObject, vehiclesDict[wipVehicle.name], new Quaternion(0f, 0.8f, 0f, -0.8f));
+                    spawnedNum++;
+                }
+
+                if(spawnedNum != vehiclesDict.Count)
+                {
+                    LoggerInstance.Error($"Failed to spawn all WIP vehicles, spawned {spawnedNum} out of {vehiclesDict.Count}");
+                }
+            }
+        }
+
+        void SpawnNeutralVehicle(GameObject vehicle, Vector3 position, Quaternion rotation)
+        {
+            var vehicleComp = vehicle.GetComponent<GHPC.Vehicle.Vehicle>();
+            if (vehicle != null)
+            {
+                vehicleComp.Allegiance = Faction.Neutral;
+                GameObject.Instantiate(vehicle, position, rotation);
+                LoggerInstance.Msg($"{vehicle.name} successfully spawned at {vehicle.transform.position}!");
+            }
+            else
+            {
+                LoggerInstance.Error($"Could not find Vehicle component in {vehicle.name} GameObject!");
             }
         }
     }
@@ -122,8 +154,8 @@ namespace GunnerModPC
     class ReportShotStoryPatch
     {
         static public PlayerInput playerInput;
-        static FieldInfo _shotStoryLifeRemaining;
-        static FieldInfo _aarController;
+        static readonly FieldInfo _shotStoryLifeRemaining;
+        static readonly FieldInfo _aarController;
 
         static ReportShotStoryPatch()
         {

@@ -2,6 +2,7 @@
 
 ## Features
 - Adds the T-34-85 to the Grafenwoehr tank range.
+- Adds the T62, T64A, M901 ITV and LEO1 to the Grafenwoehr tank range, however these are still WIP and some features are missing.
 - Adds back the live hitlog.
 - Adds back the FPS counter in the bottom left corner.
 - Removes the 3rd person crosshair.
