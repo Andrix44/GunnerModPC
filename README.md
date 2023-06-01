@@ -13,7 +13,7 @@ All features can be toggled in `\Gunner, HEAT, PC!\Bin\UserData\MelonPreferences
 Tested on version 20230519
 
 ## Installation
-- Install MelonLoader: https://github.com/LavaGang/MelonLoader.Installer/blob/master/README.md#how-to-install-re-install-or-update-melonloader.
+- Install MelonLoader v0.5.7(!!!): https://github.com/LavaGang/MelonLoader.Installer/blob/master/README.md#how-to-install-re-install-or-update-melonloader.
 - Copy `GunnerModPC.dll` to `\Gunner, HEAT, PC!\Bin\Mods`.
 - 
 ![T-34-85 at Grafenwoehr](https://github.com/Andrix44/GunnerModPC/assets/13806656/101581ed-2a18-4930-a4d6-4892860a5b99)
