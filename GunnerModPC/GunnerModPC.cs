@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System;
 using GHPC.Vehicle;
 
-[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.3.0", "Andrix")]
+[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.4.0", "Andrix")]
 [assembly: MelonGame("Radian Simulations LLC", "GHPC")]
 
 namespace GunnerModPC
@@ -24,7 +24,7 @@ namespace GunnerModPC
         public static MelonPreferences_Entry<bool> theaterDropdownPatchEnabled;
         public static MelonPreferences_Entry<bool> thirdPersonCrosshairPatchEnabled;
         public static MelonPreferences_Entry<bool> t3485GrafenwoehrPatchEnabled;
-        public static MelonPreferences_Entry<bool> wipVehiclesGrafenwoehrPatchEnabled;
+        public static MelonPreferences_Entry<bool> targetCheeseGrafenwoehrPatchEnabled;
 
         public override void OnInitializeMelon()
         {
@@ -34,7 +34,7 @@ namespace GunnerModPC
             theaterDropdownPatchEnabled = config.CreateEntry<bool>("theaterDropdownPatchEnabled", true);
             thirdPersonCrosshairPatchEnabled = config.CreateEntry<bool>("thirdPersonCrosshairPatchEnabled", true);
             t3485GrafenwoehrPatchEnabled = config.CreateEntry<bool>("t3485GrafenwoehrPatchEnabled", true);
-            wipVehiclesGrafenwoehrPatchEnabled = config.CreateEntry<bool>("wipVehiclesGrafenwoehrPatchEnabled", true);
+            targetCheeseGrafenwoehrPatchEnabled = config.CreateEntry<bool>("targetCheeseGrafenwoehrPatchEnabled", true);
 
             HarmonyLib.Harmony harmony = this.HarmonyInstance;
 
@@ -112,25 +112,17 @@ namespace GunnerModPC
                 }
             }
 
-            if (sceneName == "TR01_showcase" && wipVehiclesGrafenwoehrPatchEnabled.Value)
+            if (sceneName == "TR01_showcase" && targetCheeseGrafenwoehrPatchEnabled.Value)
             {
-                var vehiclesDict = new Dictionary<string, Vector3> { { "T62(old)", new Vector3(1241.279f, 23.6485f, 1559.117f) },
-                                                                     {"T64A OLD", new Vector3(1241.392f, 23.4064f, 1572.717f) },
-                                                                     {"M901 ITV - OLD", new Vector3(1245.746f, 23.4879f, 1532.222f) },
-                                                                     {"LEO1", new Vector3(1244.113f, 23.5555f, 1545.431f)} };
                 // Have to do this because of the HideAndDontSave flag
-                var spawnedNum = 0;
-
-                var wipVehicles = Resources.FindObjectsOfTypeAll(typeof(GameObject)).Where(o =>vehiclesDict.ContainsKey(o.name));
-                foreach(var wipVehicle in wipVehicles)
+                var targetCheese = Resources.FindObjectsOfTypeAll(typeof(GameObject)).Where(o => o.name == "tc").First() as GameObject;
+                if (targetCheese != null)
                 {
-                    SpawnNeutralVehicle(wipVehicle as GameObject, vehiclesDict[wipVehicle.name], new Quaternion(0f, 0.8f, 0f, -0.8f));
-                    spawnedNum++;
+                    SpawnNeutralVehicle(targetCheese, new Vector3(1567.01f, 16.04f, 1536.66f), Quaternion.Euler(357.96f, 195.04f, 1.83f));
                 }
-
-                if(spawnedNum != vehiclesDict.Count)
+                else
                 {
-                    LoggerInstance.Error($"Failed to spawn all WIP vehicles, spawned {spawnedNum} out of {vehiclesDict.Count}");
+                    LoggerInstance.Error("Target cheese object not found, target cheese Grafenwoehr patch could not be activated!");
                 }
             }
         }
