@@ -10,7 +10,7 @@
 
 All features can be toggled in `\Gunner, HEAT, PC!\Bin\UserData\MelonPreferences.cfg`. Make sure to run the mod at least once to generate the settings.
 
-Tested on version 20230622
+Tested on version 20230810
 
 ## Installation
 - Install MelonLoader v0.5.7(!!!): [link](https://github.com/LavaGang/MelonLoader.Installer/blob/master/README.md#how-to-install-re-install-or-update-melonloader).
