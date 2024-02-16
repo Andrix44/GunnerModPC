@@ -63,7 +63,7 @@ namespace GunnerModPC
                 }
             }
 
-            if (sceneName == "MainMenu2_Scene" && theaterDropdownPatchEnabled.Value)
+            if (theaterDropdownPatchEnabled.Value && (sceneName == "MainMenu2_Scene" || sceneName == "t64_menu"))
             {
                 MissionMenuSetup missionMenuSetup = GameObject.FindAnyObjectByType<MissionMenuSetup>();
                 if (missionMenuSetup != null)
@@ -98,7 +98,7 @@ namespace GunnerModPC
                 }
             }
 
-            if (sceneName == "TR01_showcase" && t3485GrafenwoehrPatchEnabled.Value)
+            if (t3485GrafenwoehrPatchEnabled.Value && sceneName == "TR01_showcase")
             {
                 // Have to do this because of the HideAndDontSave flag
                 var t3485 = Resources.FindObjectsOfTypeAll(typeof(GameObject)).Where(o => o.name == "T-34-85").First() as GameObject;
@@ -112,7 +112,7 @@ namespace GunnerModPC
                 }
             }
 
-            if (sceneName == "TR01_showcase" && targetCheeseGrafenwoehrPatchEnabled.Value)
+            if (targetCheeseGrafenwoehrPatchEnabled.Value && sceneName == "TR01_showcase")
             {
                 // Have to do this because of the HideAndDontSave flag
                 var targetCheese = Resources.FindObjectsOfTypeAll(typeof(GameObject)).Where(o => o.name == "tc").First() as GameObject;
