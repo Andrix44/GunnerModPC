@@ -63,9 +63,9 @@ namespace GunnerModPC {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] high_vis_crosshair {
+        internal static byte[] custom_crosshair {
             get {
-                object obj = ResourceManager.GetObject("high_vis_crosshair", resourceCulture);
+                object obj = ResourceManager.GetObject("custom_crosshair", resourceCulture);
                 return ((byte[])(obj));
             }
         }

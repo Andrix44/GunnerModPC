@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System;
 using GHPC.Vehicle;
 
-[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.5.0", "Andrix")]
+[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.5.1", "Andrix")]
 [assembly: MelonGame("Radian Simulations LLC", "GHPC")]
 
 namespace GunnerModPC
@@ -22,10 +22,18 @@ namespace GunnerModPC
         public static MelonPreferences_Entry<bool> fpsPatchEnabled;
         public static MelonPreferences_Entry<bool> shotStoryPatchEnabled;
         public static MelonPreferences_Entry<bool> theaterDropdownPatchEnabled;
-        public static MelonPreferences_Entry<bool> thirdPersonCrosshairPatchEnabled;
+        public static MelonPreferences_Entry<bool> customCrosshairColorPatchEnabled;
+        public static MelonPreferences_Entry<bool> thirdPersonCrosshairRemovalPatchEnabled;
         public static MelonPreferences_Entry<bool> t3485GrafenwoehrPatchEnabled;
         public static MelonPreferences_Entry<bool> targetCheeseGrafenwoehrPatchEnabled;
-        public static MelonPreferences_Entry<bool> highVisibilityCrosshairPatchEnabled;
+
+        public static MelonPreferences_Category cchconfig;
+        public static MelonPreferences_Entry<float> crosshairRed;
+        public static MelonPreferences_Entry<float> crosshairGreen;
+        public static MelonPreferences_Entry<float> crosshairBlue;
+        public static MelonPreferences_Entry<float> crosshairAlpha;
+        public static Sprite crosshairSprite;
+        public static Color crosshairColor;
 
         public override void OnInitializeMelon()
         {
@@ -33,10 +41,16 @@ namespace GunnerModPC
             fpsPatchEnabled = config.CreateEntry<bool>("fpsPatchEnabled", true);
             shotStoryPatchEnabled = config.CreateEntry<bool>("shotStoryPatchEnabled", true);
             theaterDropdownPatchEnabled = config.CreateEntry<bool>("theaterDropdownPatchEnabled", true);
-            thirdPersonCrosshairPatchEnabled = config.CreateEntry<bool>("thirdPersonCrosshairPatchEnabled", true);
+            customCrosshairColorPatchEnabled = config.CreateEntry<bool>("customCrosshairColorPatchEnabled", true);
+            thirdPersonCrosshairRemovalPatchEnabled = config.CreateEntry<bool>("thirdPersonCrosshairRemovalPatchEnabled", false);
             t3485GrafenwoehrPatchEnabled = config.CreateEntry<bool>("t3485GrafenwoehrPatchEnabled", true);
             targetCheeseGrafenwoehrPatchEnabled = config.CreateEntry<bool>("targetCheeseGrafenwoehrPatchEnabled", true);
-            highVisibilityCrosshairPatchEnabled = config.CreateEntry<bool>("highVisibilityCrosshairPatchEnabled", false);
+
+            cchconfig = MelonPreferences.CreateCategory("GMPCCustomCrosshairColorConfig");
+            crosshairRed = cchconfig.CreateEntry<float>("crosshairRed", 1.0f);
+            crosshairGreen = cchconfig.CreateEntry<float>("crosshairGreen", 0.25f);
+            crosshairBlue = cchconfig.CreateEntry<float>("crosshairBlue", 0.0f);
+            crosshairAlpha = cchconfig.CreateEntry<float>("crosshairAlpha", 1.0f);
 
             HarmonyLib.Harmony harmony = this.HarmonyInstance;
 
@@ -44,6 +58,25 @@ namespace GunnerModPC
             {
                 harmony.PatchAll(typeof(ReportShotStoryPatch));
                 LoggerInstance.Msg("Shot story patch activated!");
+            }
+
+            if (customCrosshairColorPatchEnabled.Value)
+            {
+                Texture2D texture = new Texture2D(256, 256);
+                // This only works if the file extension isn't .png, otherwise it will be converted to a bitmap
+                // That is why I changed the extension to .png_ and added it as a binary resource
+                ImageConversion.LoadImage(texture, resources.custom_crosshair);
+                crosshairSprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0f, 0f));
+                var components = new List<MelonPreferences_Entry<float>>() { crosshairRed, crosshairGreen, crosshairBlue, crosshairAlpha };
+                foreach (var c in components)
+                {
+                    if (c.Value < 0.0f || c.Value > 1.0f)
+                    {
+                        LoggerInstance.Warning($"Crosshair color component {c} has an invalid value! Valid values are 0.0-1.0. Defaulting to 1.0.");
+                        c.Value = 1.0f;
+                    }
+                }
+                crosshairColor = new Color(crosshairRed.Value, crosshairGreen.Value, crosshairBlue.Value, crosshairAlpha.Value);
             }
         }
 
@@ -77,7 +110,7 @@ namespace GunnerModPC
                 }
                 else
                 {
-                    LoggerInstance.Msg("MissionMenuSetup object not found, theatre dropdown menu patch could not be activated!");
+                    LoggerInstance.Error("MissionMenuSetup object not found, theatre dropdown menu patch could not be activated!");
                 }
             }
 
@@ -86,24 +119,17 @@ namespace GunnerModPC
                 ReportShotStoryPatch.playerInput = GameObject.FindObjectOfType<PlayerInput>();
             }
 
-            if (thirdPersonCrosshairPatchEnabled.Value)
+            if (thirdPersonCrosshairRemovalPatchEnabled.Value)
             {
-                if (highVisibilityCrosshairPatchEnabled.Value)
+                var aimReticle = GameObject.Find("3P aim reticle");
+                if (aimReticle != null)
                 {
-                    LoggerInstance.Msg("Both third person crosshair and high visibility crosshair patches are enabled. The high visibility crosshair will be shown!");
+                    aimReticle.SetActive(false);
+                    LoggerInstance.Msg("3rd person crosshair removed!");
                 }
                 else
                 {
-                    var aimReticle = GameObject.Find("3P aim reticle");
-                    if (aimReticle != null)
-                    {
-                        aimReticle.SetActive(false);
-                        LoggerInstance.Msg("3rd person crosshair removed!");
-                    }
-                    else
-                    {
-                        LoggerInstance.Msg("3rd person crosshair object not found, 3rd person crosshair patch could not be activated!");
-                    }
+                    LoggerInstance.Msg("3rd person crosshair object not found, 3rd person crosshair removal patch could not be activated!");
                 }
             }
 
@@ -135,22 +161,19 @@ namespace GunnerModPC
                 }
             }
 
-            if (highVisibilityCrosshairPatchEnabled.Value)
+            if (customCrosshairColorPatchEnabled.Value)
             {
                 var aimReticle = GameObject.Find("3P aim reticle");
                 if (aimReticle != null)
                 {
-                    Texture2D texture = new Texture2D(256, 256);
-                    // This only works if the file extension isn't .png, otherwise it will be converted to a bitmap
-                    // That is why I changed the extension to .png_ and added it as a binary resource
-                    ImageConversion.LoadImage(texture, resources.high_vis_crosshair);
-                    Sprite sprite = Sprite.Create(texture,new Rect(0f, 0f, texture.width, texture.height), new Vector2(0f, 0f));
-                    aimReticle.GetComponent<UnityEngine.UI.Image>().sprite = sprite;
-                    LoggerInstance.Msg("High visibility crosshair applied!");
+                    UnityEngine.UI.Image image = aimReticle.GetComponent<UnityEngine.UI.Image>();
+                    image.sprite = crosshairSprite;
+                    image.color = crosshairColor;
+                    LoggerInstance.Msg("Custom crosshair color applied!");
                 }
                 else
                 {
-                    LoggerInstance.Msg("3rd person crosshair object not found, high visibility crosshair patch could not be activated!");
+                    LoggerInstance.Msg("3rd person crosshair object not found, custom crosshair color patch could not be activated!");
                 }
             }
         }
