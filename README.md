@@ -1,13 +1,13 @@
 # GunnerModPC
 
 ## Features
-- Adds the T-34-85 to the Grafenwoehr tank range.
-- Adds back the live hitlog.
-- Adds back the FPS counter in the bottom left corner.
-- Removes the 3rd person crosshair.
-- Adds a high visibility (bright orange) crosshair.
-- Patches the map selector dropdown so you don't have to scroll for the bottom few maps.
-- Adds the target cheese to the Grafenwoehr tank range.
+- [ Enabled] T-34-85 at the Grafenwoehr tank range
+- [ Enabled] Live hitlog
+- [ Enabled] FPS counter
+- [ Enabled] Custom 3rd person crosshair color
+- [Disabled] Removed 3rd person crosshair
+- [ Enabled] Map selector dropdown fix
+- [ Enabled] Target cheese at the Grafenwoehr tank range
 
 All features can be toggled in `\Gunner, HEAT, PC!\Bin\UserData\MelonPreferences.cfg`. Make sure to run the mod at least once to generate the settings.
 
