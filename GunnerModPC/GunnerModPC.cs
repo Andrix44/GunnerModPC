@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System;
 using GHPC.Vehicle;
 
-[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.5.1", "Andrix")]
+[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.5.2", "Andrix")]
 [assembly: MelonGame("Radian Simulations LLC", "GHPC")]
 
 namespace GunnerModPC
@@ -139,7 +139,7 @@ namespace GunnerModPC
                 var t3485 = Resources.FindObjectsOfTypeAll(typeof(GameObject)).Where(o => o.name == "T-34-85").First() as GameObject;
                 if (t3485 != null)
                 {
-                    SpawnNeutralVehicle(t3485, new Vector3(1179f, 22f, 1614f), new Quaternion(0f, 0.8f, 0f, -0.8f));
+                    SpawnNeutralVehicle(t3485, new Vector3(1179f, 22f, 1617.5f), new Quaternion(0f, 0.8f, 0f, -0.8f));
                 }
                 else
                 {
