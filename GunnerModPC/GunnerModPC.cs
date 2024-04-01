@@ -10,8 +10,9 @@ using System.Linq;
 using System.Collections.Generic;
 using System;
 using GHPC.Vehicle;
+using System.Xml.Linq;
 
-[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.5.2", "Andrix")]
+[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.6.0", "Andrix")]
 [assembly: MelonGame("Radian Simulations LLC", "GHPC")]
 
 namespace GunnerModPC
@@ -19,13 +20,12 @@ namespace GunnerModPC
     public class GMPC : MelonMod
     {
         public static MelonPreferences_Category config;
-        public static MelonPreferences_Entry<bool> fpsPatchEnabled;
-        public static MelonPreferences_Entry<bool> shotStoryPatchEnabled;
-        public static MelonPreferences_Entry<bool> theaterDropdownPatchEnabled;
-        public static MelonPreferences_Entry<bool> customCrosshairColorPatchEnabled;
-        public static MelonPreferences_Entry<bool> thirdPersonCrosshairRemovalPatchEnabled;
-        public static MelonPreferences_Entry<bool> t3485GrafenwoehrPatchEnabled;
-        public static MelonPreferences_Entry<bool> targetCheeseGrafenwoehrPatchEnabled;
+        public static MelonPreferences_Entry<bool> fpsCounter;
+        public static MelonPreferences_Entry<bool> shotStory;
+        public static MelonPreferences_Entry<bool> theaterDropdown;
+        public static MelonPreferences_Entry<bool> customThirdPersonCrosshairColor;
+        public static MelonPreferences_Entry<bool> removeThirdPersonCrosshair;
+        public static MelonPreferences_Entry<bool> grafenwoehrExtraVehicles;
 
         public static MelonPreferences_Category cchconfig;
         public static MelonPreferences_Entry<float> crosshairRed;
@@ -38,29 +38,38 @@ namespace GunnerModPC
         public override void OnInitializeMelon()
         {
             config = MelonPreferences.CreateCategory("GMPCConfig");
-            fpsPatchEnabled = config.CreateEntry<bool>("fpsPatchEnabled", true);
-            shotStoryPatchEnabled = config.CreateEntry<bool>("shotStoryPatchEnabled", true);
-            theaterDropdownPatchEnabled = config.CreateEntry<bool>("theaterDropdownPatchEnabled", true);
-            customCrosshairColorPatchEnabled = config.CreateEntry<bool>("customCrosshairColorPatchEnabled", true);
-            thirdPersonCrosshairRemovalPatchEnabled = config.CreateEntry<bool>("thirdPersonCrosshairRemovalPatchEnabled", false);
-            t3485GrafenwoehrPatchEnabled = config.CreateEntry<bool>("t3485GrafenwoehrPatchEnabled", true);
-            targetCheeseGrafenwoehrPatchEnabled = config.CreateEntry<bool>("targetCheeseGrafenwoehrPatchEnabled", true);
+            grafenwoehrExtraVehicles = config.CreateEntry<bool>("grafenwoehrExtraVehicles", true);
+            grafenwoehrExtraVehicles.Description = "Enable/Disable the patch that adds extra vehicles to the Grafenwoehr tank range.";
+            shotStory = config.CreateEntry<bool>("shotStory", true);
+            shotStory.Description = "Enable/Disable the patch that brings back the live damage report.";
+            fpsCounter = config.CreateEntry<bool>("fpsCounter", true);
+            fpsCounter.Description = "Enable/Disable the patch that brings back the FPS counter in the bottom left corner.";
+            customThirdPersonCrosshairColor = config.CreateEntry<bool>("customCrosshairColor", true);
+            customThirdPersonCrosshairColor.Description = "Enable/Disable the patch that sets a custom third person crosshair color. You can change the colors under [GMPCCustomCrosshairColorConfig].";
+            theaterDropdown = config.CreateEntry<bool>("theaterDropdown", true);
+            theaterDropdown.Description = "Enable/Disable the patch that fixes the theater dropdown menu to not use a scrollbar.";
+            removeThirdPersonCrosshair = config.CreateEntry<bool>("removeThirdPersonCrosshair", false);
+            removeThirdPersonCrosshair.Description = "Enable/Disable the patch that removes the third person crosshair";
 
             cchconfig = MelonPreferences.CreateCategory("GMPCCustomCrosshairColorConfig");
-            crosshairRed = cchconfig.CreateEntry<float>("crosshairRed", 1.0f);
-            crosshairGreen = cchconfig.CreateEntry<float>("crosshairGreen", 0.25f);
-            crosshairBlue = cchconfig.CreateEntry<float>("crosshairBlue", 0.0f);
-            crosshairAlpha = cchconfig.CreateEntry<float>("crosshairAlpha", 1.0f);
+            crosshairRed = cchconfig.CreateEntry<float>("red", 1.0f);
+            crosshairRed.Description = "Red channel intensity. A float value between 0.0f and 1.0. 1.0 is equal to 255 when using an integer scale.";
+            crosshairGreen = cchconfig.CreateEntry<float>("green", 0.25f);
+            crosshairGreen.Description = "Green channel intensity. A float value between 0.0f and 1.0. 1.0 is equal to 255 when using an integer scale.";
+            crosshairBlue = cchconfig.CreateEntry<float>("blue", 0.0f);
+            crosshairBlue.Description = "Blue channel intensity. A float value between 0.0f and 1.0. 1.0 is equal to 255 when using an integer scale.";
+            crosshairAlpha = cchconfig.CreateEntry<float>("alpha", 1.0f);
+            crosshairAlpha.Description = "Alpha channel intensity. Can be used to make the crosshair transparent. A float value between 0.0f and 1.0. 1.0 is equal to 255 when using an integer scale.";
 
             HarmonyLib.Harmony harmony = this.HarmonyInstance;
 
-            if (shotStoryPatchEnabled.Value)
+            if (shotStory.Value)
             {
                 harmony.PatchAll(typeof(ReportShotStoryPatch));
                 LoggerInstance.Msg("Shot story patch activated!");
             }
 
-            if (customCrosshairColorPatchEnabled.Value)
+            if (customThirdPersonCrosshairColor.Value)
             {
                 Texture2D texture = new Texture2D(256, 256);
                 // This only works if the file extension isn't .png, otherwise it will be converted to a bitmap
@@ -84,7 +93,7 @@ namespace GunnerModPC
         {
             LoggerInstance.Msg($"Loaded scene {sceneName}, trying to patch game...");
 
-            if (fpsPatchEnabled.Value)
+            if (fpsCounter.Value)
             {
                 HUDFPS fpsCounter = GameObject.FindObjectOfType<HUDFPS>();
                 if (fpsCounter != null )
@@ -98,7 +107,7 @@ namespace GunnerModPC
                 }
             }
 
-            if (theaterDropdownPatchEnabled.Value && (sceneName == "MainMenu2_Scene" || sceneName == "t64_menu"))
+            if (theaterDropdown.Value && (sceneName == "MainMenu2_Scene" || sceneName == "t64_menu" || sceneName == "MainMenu2-1_Scene"))
             {
                 MissionMenuSetup missionMenuSetup = GameObject.FindAnyObjectByType<MissionMenuSetup>();
                 if (missionMenuSetup != null)
@@ -114,12 +123,12 @@ namespace GunnerModPC
                 }
             }
 
-            if (shotStoryPatchEnabled.Value)
+            if (shotStory.Value)
             {
                 ReportShotStoryPatch.playerInput = GameObject.FindObjectOfType<PlayerInput>();
             }
 
-            if (thirdPersonCrosshairRemovalPatchEnabled.Value)
+            if (removeThirdPersonCrosshair.Value)
             {
                 var aimReticle = GameObject.Find("3P aim reticle");
                 if (aimReticle != null)
@@ -133,35 +142,27 @@ namespace GunnerModPC
                 }
             }
 
-            if (t3485GrafenwoehrPatchEnabled.Value && sceneName == "TR01_showcase")
+            if (grafenwoehrExtraVehicles.Value && sceneName == "TR01_showcase")
             {
-                // Have to do this because of the HideAndDontSave flag
-                var t3485 = Resources.FindObjectsOfTypeAll(typeof(GameObject)).Where(o => o.name == "T-34-85").First() as GameObject;
-                if (t3485 != null)
+                (string, Vector3)[] grafenwoehrExtraVehicles = { ("T-34-85", new Vector3(1179f, 22f, 1617.5f)),
+                                                                 ("T54A", new Vector3(1181f, 23f, 1591f)) };
+
+                foreach (var (name, position)  in grafenwoehrExtraVehicles)
                 {
-                    SpawnNeutralVehicle(t3485, new Vector3(1179f, 22f, 1617.5f), new Quaternion(0f, 0.8f, 0f, -0.8f));
-                }
-                else
-                {
-                    LoggerInstance.Error("T-34-85 object not found, T-34-85 Grafenwoehr patch could not be activated!");
+                    // Have to do this because of the HideAndDontSave flag
+                    var vehicle = Resources.FindObjectsOfTypeAll(typeof(GameObject)).Where(o => o.name == name);
+                    if (vehicle.Any())
+                    {
+                        SpawnNeutralVehicle(vehicle.First() as GameObject, position, new Quaternion(0f, 0.8f, 0f, -0.8f));
+                    }
+                    else
+                    {
+                        LoggerInstance.Error($"{name} object not found, could not add it to the Grafenwoehr tank range!");
+                    }
                 }
             }
 
-            if (targetCheeseGrafenwoehrPatchEnabled.Value && sceneName == "TR01_showcase")
-            {
-                // Have to do this because of the HideAndDontSave flag
-                var targetCheese = Resources.FindObjectsOfTypeAll(typeof(GameObject)).Where(o => o.name == "tc").First() as GameObject;
-                if (targetCheese != null)
-                {
-                    SpawnNeutralVehicle(targetCheese, new Vector3(1567.01f, 16.04f, 1536.66f), Quaternion.Euler(357.96f, 195.04f, 1.83f));
-                }
-                else
-                {
-                    LoggerInstance.Error("Target cheese object not found, target cheese Grafenwoehr patch could not be activated!");
-                }
-            }
-
-            if (customCrosshairColorPatchEnabled.Value)
+            if (customThirdPersonCrosshairColor.Value)
             {
                 var aimReticle = GameObject.Find("3P aim reticle");
                 if (aimReticle != null)
