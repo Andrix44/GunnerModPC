@@ -8,11 +8,8 @@ using GHPC.UI;
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
-using System;
-using GHPC.Vehicle;
-using System.Xml.Linq;
 
-[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.6.0", "Andrix")]
+[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.6.1", "Andrix")]
 [assembly: MelonGame("Radian Simulations LLC", "GHPC")]
 
 namespace GunnerModPC
@@ -144,7 +141,7 @@ namespace GunnerModPC
 
             if (grafenwoehrExtraVehicles.Value && sceneName == "TR01_showcase")
             {
-                (string, Vector3)[] grafenwoehrExtraVehicles = { ("T-34-85", new Vector3(1179f, 22f, 1617.5f)),
+                (string, Vector3)[] grafenwoehrExtraVehicles = { ("T-34-85", new Vector3(1191f, 22.2f, 1606f)),
                                                                  ("T54A", new Vector3(1181f, 23f, 1591f)) };
 
                 foreach (var (name, position)  in grafenwoehrExtraVehicles)
