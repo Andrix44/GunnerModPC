@@ -19,8 +19,11 @@ Everything should be working on the latest game version.
 ## Installation
 - Install MelonLoader: [link](https://github.com/LavaGang/MelonLoader.Installer/blob/master/README.md#how-to-install-re-install-or-update-melonloader).
 - Download `GunnerModPC.dll` from the latest release ([link](https://github.com/Andrix44/GunnerModPC/releases/latest)) and copy it to `\Gunner, HEAT, PC!\Bin\Mods`.
-  
+
+## Images
 ![T-34-85 at Grafenwoehr](https://github.com/Andrix44/GunnerModPC/assets/13806656/101581ed-2a18-4930-a4d6-4892860a5b99)
+<img width="2560" height="1440" alt="Helicopter targets" src="https://github.com/user-attachments/assets/f8ef7369-b107-4042-8af5-f43fc54f5722" />
+
 
 ## Building
 You can simply build the project with Visual Studio, but first you have to fix the references so that they point to your game DLLs.
