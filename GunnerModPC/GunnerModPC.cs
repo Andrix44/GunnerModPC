@@ -1,15 +1,21 @@
-﻿using GunnerModPC;
-using MelonLoader;
-using HarmonyLib;
-using System.Reflection;
+﻿using GHPC;
+using GHPC.Mission;
 using GHPC.Player;
-using GHPC;
 using GHPC.UI;
-using UnityEngine;
-using System.Linq;
+using GHPC.Vehicle;
+using GunnerModPC;
+using HarmonyLib;
+using MelonLoader;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Xml.Linq;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using static Reticle.ReticleTree;
 
-[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.6.2", "Andrix")]
+[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.7.0", "Andrix")]
 [assembly: MelonGame("Radian Simulations LLC", "GHPC")]
 
 namespace GunnerModPC
@@ -31,6 +37,8 @@ namespace GunnerModPC
         public static MelonPreferences_Entry<float> crosshairAlpha;
         public static Sprite crosshairSprite;
         public static Color crosshairColor;
+
+        static Dictionary<string, AssetReference> loadedPrefabs;
 
         public override void OnInitializeMelon()
         {
@@ -57,6 +65,8 @@ namespace GunnerModPC
             crosshairBlue.Description = "Blue channel intensity. A float value between 0.0f and 1.0. 1.0 is equal to 255 when using an integer scale.";
             crosshairAlpha = cchconfig.CreateEntry<float>("alpha", 1.0f);
             crosshairAlpha.Description = "Alpha channel intensity. Can be used to make the crosshair transparent. A float value between 0.0f and 1.0. 1.0 is equal to 255 when using an integer scale.";
+
+            loadedPrefabs = new Dictionary<string, AssetReference>();
 
             HarmonyLib.Harmony harmony = this.HarmonyInstance;
 
@@ -141,20 +151,39 @@ namespace GunnerModPC
 
             if (grafenwoehrExtraVehicles.Value && sceneName == "TR01_showcase")
             {
-                (string, Vector3)[] grafenwoehrExtraVehicles = { ("T-34-85", new Vector3(1191f, 22.2f, 1606f)),
-                                                                 ("T54A", new Vector3(1181f, 23f, 1591f)) };
+                var prefabLookup = Object.FindAnyObjectByType<UnitSpawner>().PrefabLookup;
+                LoggerInstance.Msg("Available prefabs: " + string.Join(", ", prefabLookup.AllUnits.Select(unit => unit.Name)));
 
-                foreach (var (name, position)  in grafenwoehrExtraVehicles)
+                // The helicopers often end up looking to the side and they even crashed into the ground when spawned at certain locations.
+                // I don't know what causes these issues, but my theory is that the flight controller takes a while to activate and they keep falling until then.
+                (string, Vector3, bool)[] grafenwoehrExtraVehicles = { 
+                    ("T3485", new Vector3(1191f, 22.2f, 1606f), false),
+                    ("T54A", new Vector3(1181f, 23f, 1591f), false),
+                    ("AH1", new Vector3(443f, 64f, 1710f), true),
+                    ("Mi24", new Vector3(-100f, 80f, 1652f), true),
+                    ("Mi24V_SA", new Vector3(-255f, 115f, 1551f), true),
+                    ("MI2", new Vector3(-378f, 70f, 1400f), true),
+                    ("OH58A", new Vector3(-545f, 200f, 1700f), true),
+                    ("Mi8T", new Vector3(-803f, 90f, 1900f), true),
+                    ("Mi24V_NVA", new Vector3(-1306f, 104f, 1697f), true)
+                };
+
+                foreach (var (name, position, lookingTowardSpawn)  in grafenwoehrExtraVehicles)
                 {
-                    // Have to do this because of the HideAndDontSave flag
-                    var vehicle = Resources.FindObjectsOfTypeAll(typeof(GameObject)).Where(o => o.name == name);
-                    if (vehicle.Any())
+                    if (!loadedPrefabs.TryGetValue(name, out AssetReference prefab)) {
+                        prefab = prefabLookup.GetPrefab(name);
+                        loadedPrefabs.Add(name, prefab);
+                    }
+                    var vehicle = prefab.LoadAssetAsync<GameObject>().WaitForCompletion();
+
+                    if (vehicle != null)
                     {
-                        SpawnNeutralVehicle(vehicle.First() as GameObject, position, new Quaternion(0f, 0.8f, 0f, -0.8f));
+                        float w = lookingTowardSpawn ? 0.8f : -0.8f;
+                        SpawnNeutralVehicle(vehicle, position, new Quaternion(0f, 0.8f, 0f, w));
                     }
                     else
                     {
-                        LoggerInstance.Error($"{name} object not found, could not add it to the Grafenwoehr tank range!");
+                        LoggerInstance.Error($"{name} prefab not found, could not add it to the Grafenwoehr tank range!");
                     }
                 }
             }
@@ -188,6 +217,18 @@ namespace GunnerModPC
             else
             {
                 LoggerInstance.Error($"Could not find Vehicle component in {vehicle.name} GameObject!");
+            }
+        }
+
+        public override void OnSceneWasUnloaded(int buildIndex, string sceneName)
+        {
+            if (grafenwoehrExtraVehicles.Value && sceneName == "TR01_showcase")
+            {
+                foreach (var prefab in loadedPrefabs.Values)
+                {
+                    prefab.ReleaseAsset();
+                }
+                loadedPrefabs.Clear();
             }
         }
     }

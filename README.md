@@ -1,7 +1,11 @@
 # GunnerModPC
 
 ## Features
-- [ Enabled] Extra vehicles at the Grafenwoehr tank range (T-34-85 and T54A)
+- [ Enabled] Extra vehicles at the Grafenwoehr tank range.
+	- Playable: T-34-85 and T-54A
+	- Targets: OH-58A, AH-1, Mi-2, Mi-8T, Mi-24, Mi-24V (Soviet), Mi-24V (East German)
+	  Currently there is an issue with the helicopter targets in which they lose control during the loading screen and some may crash before you gain control.
+	  Also, the first time you press `Shift` to enter aim mode, it teleports the camera to a helicopter and you have switch to some other vehicle to fix it.
 - [ Enabled] Live shot damage report
 - [ Enabled] FPS counter
 - [ Enabled] Custom 3rd person crosshair color
