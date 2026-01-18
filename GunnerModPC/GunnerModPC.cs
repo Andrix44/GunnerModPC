@@ -2,20 +2,16 @@
 using GHPC.Mission;
 using GHPC.Player;
 using GHPC.UI;
-using GHPC.Vehicle;
 using GunnerModPC;
 using HarmonyLib;
 using MelonLoader;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using static Reticle.ReticleTree;
 
-[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.7.0", "Andrix")]
+[assembly: MelonInfo(typeof(GMPC), "Gunner, Mod, PC!", "1.7.1", "Andrix")]
 [assembly: MelonGame("Radian Simulations LLC", "GHPC")]
 
 namespace GunnerModPC
@@ -174,7 +170,7 @@ namespace GunnerModPC
                         prefab = prefabLookup.GetPrefab(name);
                         loadedPrefabs.Add(name, prefab);
                     }
-                    var vehicle = prefab.LoadAssetAsync<GameObject>().WaitForCompletion();
+                    var vehicle = Addressables.LoadAssetAsync<GameObject>(prefab).WaitForCompletion();
 
                     if (vehicle != null)
                     {
